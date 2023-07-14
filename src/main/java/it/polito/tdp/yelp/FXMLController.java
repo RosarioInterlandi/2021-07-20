@@ -5,6 +5,8 @@
 package it.polito.tdp.yelp;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import it.polito.tdp.yelp.model.Model;
@@ -38,7 +40,7 @@ public class FXMLController {
     private TextField txtX2; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbAnno"
-    private ComboBox<?> cmbAnno; // Value injected by FXMLLoader
+    private ComboBox<Integer> cmbAnno; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtN"
     private TextField txtN; // Value injected by FXMLLoader
@@ -54,7 +56,8 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-
+    	int numRecensioni = Integer.parseInt(txtN.getText());
+    	this.model.buildGraph(cmbAnno.getValue(),numRecensioni );
     }
 
     @FXML
@@ -84,5 +87,9 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	List<Integer> anni = new ArrayList<>();
+    	for (int i= 2005; i<=2013;i++)
+    		anni.add(i);
+    	this.cmbAnno.getItems().addAll(anni);
     }
 }

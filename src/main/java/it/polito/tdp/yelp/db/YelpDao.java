@@ -4,9 +4,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.*;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
+import it.polito.tdp.itunes.model.EdgeModel;
 import it.polito.tdp.yelp.model.Business;
 import it.polito.tdp.yelp.model.Review;
 import it.polito.tdp.yelp.model.User;
@@ -110,6 +113,74 @@ public class YelpDao {
 			return null;
 		}
 	}
+	
+	public List<User> getVertici(int nRecensioni){
+		String sql = "SELECT u.*,   COUNT(r.review_id) AS numero "
+				+ "FROM users u, reviews r "
+				+ "WHERE u.user_id = r.user_id "
+				+ "GROUP BY u.user_id "
+				+ "HAVING  COUNT(r.review_id)>= ? ";
+		List<User> result = new ArrayList<User>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, nRecensioni);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				User user = new User(res.getString("user_id"),
+						res.getInt("votes_funny"),
+						res.getInt("votes_useful"),
+						res.getInt("votes_cool"),
+						res.getString("name"),
+						res.getDouble("average_stars"),
+						res.getInt("review_count"));
+				user.setCountRecensioni(res.getInt("numero"));
+				result.add(user);
+			}
+			res.close();
+			st.close();
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+	}
+	
+	public int calcolaSimilarita(User u1, User u2, int anno) {
+		String sql = "SELECT COUNT(*) AS similarita "
+				+ "FROM reviews r1, reviews r2 "
+				+ "WHERE r1.business_id = r2.business_id "
+				+ "AND r1.user_id = ? "
+				+ "AND r2.user_id = ? "
+				+ "AND YEAR(r1.review_date) = ? "
+				+ "AND YEAR(r2.review_date) = ? " ;
+		
+		Connection conn = DBConnect.getConnection() ;
+		try {
+			PreparedStatement st = conn.prepareStatement(sql) ;
+			st.setString(1, u1.getUserId());
+			st.setString(2, u2.getUserId());
+			st.setInt(3, anno);
+			st.setInt(4, anno);
+			
+			ResultSet res = st.executeQuery() ;
+			
+			res.first();
+			int similarita = res.getInt("similarita");
+			conn.close();
+			return similarita ;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return -1;
+		}
+	}	
+		
 	
 	
 }
